@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="midnight">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sanjay AI Chat • Powered by Groq, Gemini & Hugging Face</title>
+    <meta name="description" content="Ultra-fast multi-provider AI Chatbot powered by Flask, Groq LPU, Google Gemini, and Hugging Face.">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Icons: Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Markdown Parser & Code Syntax Highlighting -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="brand">
+                    <div class="brand-icon">
+                        <i data-lucide="zap"></i>
+                    </div>
+                    <div class="brand-info">
+                        <h1 class="brand-title">Sanjay AI</h1>
+                        <span class="brand-subtitle">Groq & Multi-LLM</span>
+                    </div>
+                </div>
+                <button class="icon-btn close-sidebar-btn" id="closeSidebarBtn" title="Close Sidebar">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <div class="sidebar-actions">
+                <button class="btn btn-primary new-chat-btn" id="newChatBtn">
+                    <i data-lucide="plus"></i>
+                    <span>New Chat</span>
+                    <kbd>Ctrl+N</kbd>
+                </button>
+            </div>
+
+            <div class="sidebar-search">
+                <i data-lucide="search"></i>
+                <input type="text" id="searchChatsInput" placeholder="Search conversations...">
+            </div>
+
+            <div class="chat-history-container">
+                <div class="history-section-title">Recent Conversations</div>
+                <div class="chat-list" id="chatList">
+                    <!-- Dynamic chat sessions loaded here -->
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="provider-badges" id="providerBadges">
+                    <div class="badge-pill" id="badgeGroq" title="Groq API Status">
+                        <span class="dot"></span> Groq
+                    </div>
+                    <div class="badge-pill" id="badgeGemini" title="Gemini API Status">
+                        <span class="dot"></span> Gemini
+                    </div>
+                    <div class="badge-pill" id="badgeHF" title="Hugging Face Status">
+                        <span class="dot"></span> HF
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <button class="footer-btn" id="openSettingsBtnFooter">
+                        <i data-lucide="key"></i>
+                        <span>API Keys (.env)</span>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="chat-header">
+                <div class="header-left">
+                    <button class="icon-btn toggle-sidebar-btn" id="toggleSidebarBtn" title="Toggle Sidebar">
+                        <i data-lucide="menu"></i>
+                    </button>
+                    
+                    <!-- Provider Switcher -->
+                    <div class="select-group">
+                        <label for="providerSelect" class="sr-only">AI Provider</label>
+                        <div class="custom-select-wrapper">
+                            <i data-lucide="cpu" class="select-icon"></i>
+                            <select id="providerSelect" class="custom-select">
+                                <option value="groq" selected>⚡ Groq LPU (Ultra Fast)</option>
+                                <option value="gemini">✨ Google Gemini</option>
+                                <option value="huggingface">🤗 Hugging Face</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Model Switcher -->
+                    <div class="select-group">
+                        <label for="modelSelect" class="sr-only">AI Model</label>
+                        <div class="custom-select-wrapper">
+                            <i data-lucide="sparkles" class="select-icon"></i>
+                            <select id="modelSelect" class="custom-select">
+                                <!-- Populated dynamically based on chosen provider -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Persona / System Prompt Switcher -->
+                    <div class="select-group persona-group">
+                        <div class="custom-select-wrapper">
+                            <i data-lucide="user-check" class="select-icon"></i>
+                            <select id="personaSelect" class="custom-select">
+                                <option value="general">🤖 General Assistant</option>
+                                <option value="coder">💻 Senior Software Architect</option>
+                                <option value="writer">✍️ Creative & Copy Writer</option>
+                                <option value="explainer">🧠 Concise & First Principles</option>
+                                <option value="cyber">🛡️ Cybersecurity Analyst</option>
+                                <option value="custom">⚙️ Custom System Prompt...</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="header-right">
+                    <!-- Theme Selector -->
+                    <div class="theme-select-wrapper">
+                        <button class="icon-btn" id="themeDropdownBtn" title="Change Theme">
+                            <i data-lucide="palette"></i>
+                        </button>
+                        <div class="theme-menu" id="themeMenu">
+                            <button class="theme-option active" data-theme="midnight">🌌 Midnight Indigo</button>
+                            <button class="theme-option" data-theme="cyberpunk">⚡ Cyberpunk Neon</button>
+                            <button class="theme-option" data-theme="emerald">🌲 Emerald Matrix</button>
+                            <button class="theme-option" data-theme="nordic">☀️ Nordic Light</button>
+                        </div>
+                    </div>
+
+                    <!-- Prompt Templates Button -->
+                    <button class="icon-btn" id="promptLibBtn" title="Prompt Template Library">
+                        <i data-lucide="lightbulb"></i>
+                    </button>
+                    <button class="icon-btn" id="exportChatBtn" title="Export Conversation (Markdown / JSON)">
+                        <i data-lucide="download"></i>
+                    </button>
+                    <button class="icon-btn" id="clearChatBtn" title="Clear Messages">
+                        <i data-lucide="trash-2"></i>
+                    </button>
+                    <button class="icon-btn" id="settingsBtn" title="Settings & API Keys">
+                        <i data-lucide="settings"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Chat Viewport -->
+            <div class="chat-viewport" id="chatViewport">
+                <!-- Welcome Hero (shown when chat is empty) -->
+                <div class="welcome-hero" id="welcomeHero">
+                    <div class="welcome-badge">
+                        <span class="pulse-icon"></span> Groq LPU High Speed Inference & Vision
+                    </div>
+                    <h2 class="welcome-title">What would you like to create or explore today?</h2>
+                    <p class="welcome-subtitle">
+                        Experience blazing fast responses powered by Groq, Gemini, and open-source models with seamless file attachments & .env configuration.
+                    </p>
+
+                    <div class="quick-prompts-grid">
+                        <button class="prompt-card" data-prompt="Explain quantum computing like I am 15 with an intuitive real-world analogy.">
+                            <div class="card-icon"><i data-lucide="atom"></i></div>
+                            <div class="card-content">
+                                <h4>Explain Quantum Computing</h4>
+                                <p>Simple, intuitive analogy from first principles</p>
+                            </div>
+                        </button>
+
+                        <button class="prompt-card" data-prompt="Write a production-ready Python script using Flask and background workers with complete error handling.">
+                            <div class="card-icon"><i data-lucide="code-2"></i></div>
+                            <div class="card-content">
+                                <h4>Python Async Architecture</h4>
+                                <p>Production-ready code with error handling</p>
+                            </div>
+                        </button>
+
+                        <button class="prompt-card" data-prompt="Give me 5 high-converting headline ideas and hero copy for a developer-first SaaS product.">
+                            <div class="card-icon"><i data-lucide="feather"></i></div>
+                            <div class="card-content">
+                                <h4>SaaS Copywriting</h4>
+                                <p>5 high-converting headlines & value propositions</p>
+                            </div>
+                        </button>
+
+                        <button class="prompt-card" data-prompt="Compare Groq LPU chip architecture vs traditional GPU matrix multiplication.">
+                            <div class="card-icon"><i data-lucide="cpu"></i></div>
+                            <div class="card-content">
+                                <h4>Groq LPU vs GPU</h4>
+                                <p>Deep architectural comparison & throughput analysis</p>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Messages Container -->
+                <div class="messages-container" id="messagesContainer">
+                    <!-- Messages will be rendered here dynamically -->
+                </div>
+            </div>
+
+            <!-- Chat Input Area -->
+            <div class="chat-input-wrapper">
+                <div class="input-container-card">
+                    <!-- System Prompt Bar -->
+                    <div class="persona-preview" id="personaPreview">
+                        <div class="persona-tag">
+                            <i data-lucide="bot"></i>
+                            <span id="personaLabel">General Assistant</span>
+                        </div>
+                        <div class="persona-controls">
+                            <span class="temp-badge" id="tempBadge">Temp: 0.7</span>
+                            <button class="text-btn" id="editPersonaBtn">Customize</button>
+                        </div>
+                    </div>
+
+                    <!-- Attachments Preview Area -->
+                    <div class="attachments-preview hidden" id="attachmentsPreview"></div>
+
+                    <form id="chatForm" class="chat-form">
+                        <textarea
+                            id="userInput"
+                            class="chat-textarea"
+                            placeholder="Message Sanjay AI... (Type or attach PDF, code, or image. Enter to send, Shift+Enter for new line)"
+                            rows="1"
+                            autofocus
+                        ></textarea>
+
+                        <!-- Hidden File Input -->
+                        <input type="file" id="fileInput" accept=".pdf,.txt,.py,.js,.jsx,.ts,.tsx,.json,.csv,.md,.html,.css,.png,.jpg,.jpeg,.webp" style="display: none;">
+
+                        <div class="input-actions">
+                            <div class="input-actions-left">
+                                <button type="button" class="icon-btn" id="attachFileBtn" title="Attach Document or Image (PDF, Code, PNG, JPG)">
+                                    <i data-lucide="paperclip"></i>
+                                </button>
+                                <button type="button" class="icon-btn mic-btn" id="micBtn" title="Voice Input (Speech-to-Text)">
+                                    <i data-lucide="mic"></i>
+                                </button>
+                                <button type="button" class="icon-btn" id="ttsToggleBtn" title="Toggle Auto Text-to-Speech">
+                                    <i data-lucide="volume-2"></i>
+                                </button>
+                            </div>
+
+                            <div class="input-actions-right">
+                                <button type="button" class="btn btn-danger stop-btn hidden" id="stopBtn">
+                                    <i data-lucide="square"></i>
+                                    <span>Stop</span>
+                                </button>
+                                <button type="submit" class="btn btn-primary send-btn" id="sendBtn" title="Send message">
+                                    <span>Send</span>
+                                    <i data-lucide="arrow-up"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="input-disclaimer">
+                    Sanjay AI can produce unexpected results. Always verify critical technical info. Powered by Flask & .env configuration.
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Settings / API Keys Modal -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <div class="modal-icon"><i data-lucide="key"></i></div>
+                    <div>
+                        <h3 class="modal-title">API Keys & Configuration</h3>
+                        <p class="modal-desc">Configure keys saved in your <code>.env</code> file.</p>
+                    </div>
+                </div>
+                <button class="icon-btn close-modal-btn" id="closeSettingsBtn">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <!-- Status Banner -->
+                <div class="key-status-banner" id="keyStatusBanner">
+                    <!-- Populated dynamically -->
+                </div>
+
+                <form id="keysForm" class="keys-form">
+                    <!-- Groq Key -->
+                    <div class="form-group">
+                        <div class="form-label-row">
+                            <label for="groqKeyInput">
+                                <span class="provider-tag groq-tag">Groq</span> API Key
+                            </label>
+                            <a href="https://console.groq.com/keys" target="_blank" class="external-link">
+                                Get Free Groq Key <i data-lucide="external-link"></i>
+                            </a>
+                        </div>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="groqKeyInput" placeholder="gsk_..." autocomplete="off">
+                            <button type="button" class="icon-btn toggle-visibility" data-target="groqKeyInput">
+                                <i data-lucide="eye"></i>
+                            </button>
+                        </div>
+                        <small class="form-hint">Fastest inference on LPU chips (Llama 3.3, Llama 3.2 Vision, Mixtral, Gemma 2).</small>
+                    </div>
+
+                    <!-- Gemini Key -->
+                    <div class="form-group">
+                        <div class="form-label-row">
+                            <label for="geminiKeyInput">
+                                <span class="provider-tag gemini-tag">Gemini</span> API Key
+                            </label>
+                            <a href="https://aistudio.google.com/app/apikey" target="_blank" class="external-link">
+                                Get Gemini Key <i data-lucide="external-link"></i>
+                            </a>
+                        </div>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="geminiKeyInput" placeholder="AIzaSy..." autocomplete="off">
+                            <button type="button" class="icon-btn toggle-visibility" data-target="geminiKeyInput">
+                                <i data-lucide="eye"></i>
+                            </button>
+                        </div>
+                        <small class="form-hint">Google AI Studio key for Gemini 2.0 Flash & Gemini 1.5 Pro.</small>
+                    </div>
+
+                    <!-- Hugging Face Key -->
+                    <div class="form-group">
+                        <div class="form-label-row">
+                            <label for="hfKeyInput">
+                                <span class="provider-tag hf-tag">Hugging Face</span> Token
+                            </label>
+                            <a href="https://huggingface.co/settings/tokens" target="_blank" class="external-link">
+                                Get HF Token <i data-lucide="external-link"></i>
+                            </a>
+                        </div>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="hfKeyInput" placeholder="hf_..." autocomplete="off">
+                            <button type="button" class="icon-btn toggle-visibility" data-target="hfKeyInput">
+                                <i data-lucide="eye"></i>
+                            </button>
+                        </div>
+                        <small class="form-hint">Access token for open-source model router inference.</small>
+                    </div>
+
+                    <!-- Advanced Parameters -->
+                    <div class="advanced-section">
+                        <h4 class="advanced-title">Inference Parameters</h4>
+                        <div class="slider-group">
+                            <div class="slider-header">
+                                <label for="temperatureRange">Temperature (Creativity)</label>
+                                <span id="tempValueDisplay">0.7</span>
+                            </div>
+                            <input type="range" id="temperatureRange" min="0" max="1" step="0.05" value="0.7">
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" id="cancelSettingsBtn">Close</button>
+                        <button type="submit" class="btn btn-primary" id="saveKeysBtn">
+                            <i data-lucide="save"></i>
+                            <span>Save to .env & Reload</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Prompt Library Modal -->
+    <div class="modal-overlay" id="promptLibModal">
+        <div class="modal-card modal-large">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <div class="modal-icon"><i data-lucide="lightbulb"></i></div>
+                    <div>
+                        <h3 class="modal-title">Prompt Template Library</h3>
+                        <p class="modal-desc">Click any template to quickly insert it into your chat session.</p>
+                    </div>
+                </div>
+                <button class="icon-btn close-modal-btn" id="closePromptLibBtn">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="prompt-templates-grid">
+                    <div class="template-card" data-template="Analyze the following code for performance bottlenecks, memory leaks, and race conditions, then provide an optimized refactored version:&#10;&#10;```python&#10;# Paste code here&#10;```">
+                        <div class="template-tag">⚡ Performance</div>
+                        <h4>Code Optimization & Refactoring</h4>
+                        <p>Analyze bottlenecks, memory leaks, and generate clean refactored code.</p>
+                    </div>
+
+                    <div class="template-card" data-template="Generate comprehensive unit and integration tests using pytest for this function, covering happy paths, edge cases, and failure scenarios:&#10;&#10;```python&#10;# Paste function here&#10;```">
+                        <div class="template-tag">🧪 Testing</div>
+                        <h4>Unit & Integration Test Suite</h4>
+                        <p>Generate pytest suites covering edge cases, mocks, and failure scenarios.</p>
+                    </div>
+
+                    <div class="template-card" data-template="Design a scalable, fault-tolerant system architecture for [insert project, e.g. real-time notification service]. Include database choices, caching strategy, queueing, and load balancing.">
+                        <div class="template-tag">🏗️ Architecture</div>
+                        <h4>Scalable System Design</h4>
+                        <p>End-to-end architecture breakdown with DB schema, caching, and queues.</p>
+                    </div>
+
+                    <div class="template-card" data-template="Act as a senior security auditor. Perform a threat model analysis on this API endpoint and suggest defensive mitigations according to OWASP Top 10:&#10;&#10;">
+                        <div class="template-tag">🛡️ Security</div>
+                        <h4>OWASP Security & Vulnerability Audit</h4>
+                        <p>Threat model analysis with concrete defensive mitigation steps.</p>
+                    </div>
+
+                    <div class="template-card" data-template="Summarize the key takeaways, action items, and technical implications of this document in structured bullet points:&#10;&#10;">
+                        <div class="template-tag">📝 Executive</div>
+                        <h4>Executive Summary & Action Items</h4>
+                        <p>Distill dense text or technical docs into high-impact actionable briefs.</p>
+                    </div>
+
+                    <div class="template-card" data-template="Write an optimized SQL query with indexes for PostgreSQL to solve the following requirement:&#10;&#10;">
+                        <div class="template-tag">🗄️ Database</div>
+                        <h4>PostgreSQL Query & Index Tuning</h4>
+                        <p>Write performant queries, indexes, and explain query execution plans.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Persona Modal -->
+    <div class="modal-overlay" id="personaModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <div class="modal-icon"><i data-lucide="bot"></i></div>
+                    <div>
+                        <h3 class="modal-title">Custom System Persona</h3>
+                        <p class="modal-desc">Instruct the AI how to behave and respond throughout the conversation.</p>
+                    </div>
+                </div>
+                <button class="icon-btn close-modal-btn" id="closePersonaBtn">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="customSystemPrompt">System Instructions</label>
+                    <textarea id="customSystemPrompt" rows="6" placeholder="You are a senior full-stack developer with 15+ years of experience in Python, Flask, and distributed systems. Always provide clean, typed code with explanations..."></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="resetPersonaBtn">Reset to Default</button>
+                    <button type="button" class="btn btn-primary" id="savePersonaBtn">Apply Persona</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- App JavaScript -->
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

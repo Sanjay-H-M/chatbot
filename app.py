@@ -35,6 +35,7 @@ CORS(app)
 
 
 @app.route("/")
+@app.route("/api/index")
 def index():
     """Render the main chat interface."""
     return render_template("index.html")

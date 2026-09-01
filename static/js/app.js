@@ -148,11 +148,11 @@ class NexusChatApp {
 
     bindEvents() {
         // Sidebar toggle
-        this.toggleSidebarBtn.addEventListener("click", () => this.sidebar.classList.add("open"));
-        this.closeSidebarBtn.addEventListener("click", () => this.sidebar.classList.remove("open"));
+        this.toggleSidebarBtn?.addEventListener("click", () => this.sidebar?.classList.add("open"));
+        this.closeSidebarBtn?.addEventListener("click", () => this.sidebar?.classList.remove("open"));
 
         // New Chat
-        this.newChatBtn.addEventListener("click", () => this.createNewSession());
+        this.newChatBtn?.addEventListener("click", () => this.createNewSession());
         document.addEventListener("keydown", (e) => {
             if (e.ctrlKey && e.key.toLowerCase() === "n") {
                 e.preventDefault();
@@ -161,19 +161,19 @@ class NexusChatApp {
         });
 
         // Search conversations
-        this.searchChatsInput.addEventListener("input", (e) => this.filterChatList(e.target.value));
+        this.searchChatsInput?.addEventListener("input", (e) => this.filterChatList(e.target.value));
 
         // Provider & Model changes
-        this.providerSelect.addEventListener("change", () => this.onProviderChange());
-        this.personaSelect.addEventListener("change", () => this.onPersonaChange());
-        this.editPersonaBtn.addEventListener("click", () => this.openPersonaModal());
+        this.providerSelect?.addEventListener("change", () => this.onProviderChange());
+        this.personaSelect?.addEventListener("change", () => this.onPersonaChange());
+        this.editPersonaBtn?.addEventListener("click", () => this.openPersonaModal());
 
         // Theme Menu
-        this.themeDropdownBtn.addEventListener("click", (e) => {
+        this.themeDropdownBtn?.addEventListener("click", (e) => {
             e.stopPropagation();
-            this.themeMenu.classList.toggle("active");
+            this.themeMenu?.classList.toggle("active");
         });
-        document.addEventListener("click", () => this.themeMenu.classList.remove("active"));
+        document.addEventListener("click", () => this.themeMenu?.classList.remove("active"));
         document.querySelectorAll(".theme-option").forEach(btn => {
             btn.addEventListener("click", () => {
                 const theme = btn.getAttribute("data-theme");
@@ -182,9 +182,9 @@ class NexusChatApp {
         });
 
         // Prompt Library
-        this.promptLibBtn.addEventListener("click", () => this.openPromptLibModal());
-        this.closePromptLibBtn.addEventListener("click", () => this.closePromptLibModal());
-        this.promptLibModal.addEventListener("click", (e) => {
+        this.promptLibBtn?.addEventListener("click", () => this.openPromptLibModal());
+        this.closePromptLibBtn?.addEventListener("click", () => this.closePromptLibModal());
+        this.promptLibModal?.addEventListener("click", (e) => {
             if (e.target === this.promptLibModal) this.closePromptLibModal();
         });
         document.querySelectorAll(".template-card").forEach(card => {
@@ -200,11 +200,11 @@ class NexusChatApp {
         });
 
         // File Attachments
-        this.attachFileBtn.addEventListener("click", () => this.fileInput.click());
-        this.fileInput.addEventListener("change", (e) => this.handleFileUpload(e.target.files[0]));
+        this.attachFileBtn?.addEventListener("click", () => this.fileInput?.click());
+        this.fileInput?.addEventListener("change", (e) => this.handleFileUpload(e.target.files[0]));
 
         // Clipboard Paste Image Support
-        this.userInput.addEventListener("paste", (e) => {
+        this.userInput?.addEventListener("paste", (e) => {
             const items = (e.clipboardData || e.originalEvent.clipboardData).items;
             for (let item of items) {
                 if (item.type.indexOf("image") !== -1) {
@@ -215,8 +215,8 @@ class NexusChatApp {
         });
 
         // Clear & Export
-        this.clearChatBtn.addEventListener("click", () => this.clearCurrentChat());
-        this.exportChatBtn.addEventListener("click", () => this.exportCurrentChat());
+        this.clearChatBtn?.addEventListener("click", () => this.clearCurrentChat());
+        this.exportChatBtn?.addEventListener("click", () => this.exportCurrentChat());
 
         // Quick starter prompts
         document.querySelectorAll(".prompt-card").forEach(card => {
@@ -230,31 +230,36 @@ class NexusChatApp {
         });
 
         // Chat input auto-grow & keyboard submit
-        this.userInput.addEventListener("input", () => this.adjustTextareaHeight());
-        this.userInput.addEventListener("keydown", (e) => {
+        this.userInput?.addEventListener("input", () => this.adjustTextareaHeight());
+        this.userInput?.addEventListener("keydown", (e) => {
             if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
                 this.handleSendMessage();
             }
         });
 
-        this.chatForm.addEventListener("submit", (e) => {
+        this.chatForm?.addEventListener("submit", (e) => {
             e.preventDefault();
             this.handleSendMessage();
         });
 
-        this.stopBtn.addEventListener("click", () => this.stopGeneration());
+        this.sendBtn?.addEventListener("click", (e) => {
+            e.preventDefault();
+            this.handleSendMessage();
+        });
+
+        this.stopBtn?.addEventListener("click", () => this.stopGeneration());
 
         // Voice Input & TTS
-        this.micBtn.addEventListener("click", () => this.toggleVoiceInput());
-        this.ttsToggleBtn.addEventListener("click", () => this.toggleAutoTTS());
+        this.micBtn?.addEventListener("click", () => this.toggleVoiceInput());
+        this.ttsToggleBtn?.addEventListener("click", () => this.toggleAutoTTS());
 
         // Settings Modal
-        this.settingsBtn.addEventListener("click", () => this.openSettingsModal());
-        this.openSettingsBtnFooter.addEventListener("click", () => this.openSettingsModal());
-        this.closeSettingsBtn.addEventListener("click", () => this.closeSettingsModal());
-        this.cancelSettingsBtn.addEventListener("click", () => this.closeSettingsModal());
-        this.settingsModal.addEventListener("click", (e) => {
+        this.settingsBtn?.addEventListener("click", () => this.openSettingsModal());
+        this.openSettingsBtnFooter?.addEventListener("click", () => this.openSettingsModal());
+        this.closeSettingsBtn?.addEventListener("click", () => this.closeSettingsModal());
+        this.cancelSettingsBtn?.addEventListener("click", () => this.closeSettingsModal());
+        this.settingsModal?.addEventListener("click", (e) => {
             if (e.target === this.settingsModal) this.closeSettingsModal();
         });
 
@@ -263,32 +268,34 @@ class NexusChatApp {
             btn.addEventListener("click", () => {
                 const targetId = btn.getAttribute("data-target");
                 const input = document.getElementById(targetId);
-                if (input.type === "password") {
-                    input.type = "text";
-                    btn.innerHTML = `<i data-lucide="eye-off"></i>`;
-                } else {
-                    input.type = "password";
-                    btn.innerHTML = `<i data-lucide="eye"></i>`;
+                if (input) {
+                    if (input.type === "password") {
+                        input.type = "text";
+                        btn.innerHTML = `<i data-lucide="eye-off"></i>`;
+                    } else {
+                        input.type = "password";
+                        btn.innerHTML = `<i data-lucide="eye"></i>`;
+                    }
+                    lucide.createIcons();
                 }
-                lucide.createIcons();
             });
         });
 
         // Temperature slider
-        this.temperatureRange.addEventListener("input", (e) => {
-            this.tempValueDisplay.textContent = e.target.value;
-            this.tempBadge.textContent = `Temp: ${e.target.value}`;
+        this.temperatureRange?.addEventListener("input", (e) => {
+            if (this.tempValueDisplay) this.tempValueDisplay.textContent = e.target.value;
+            if (this.tempBadge) this.tempBadge.textContent = `Temp: ${e.target.value}`;
         });
 
         // Keys form submit
-        this.keysForm.addEventListener("submit", (e) => this.handleSaveKeys(e));
+        this.keysForm?.addEventListener("submit", (e) => this.handleSaveKeys(e));
 
         // Persona Modal
-        this.closePersonaBtn.addEventListener("click", () => this.closePersonaModal());
-        this.savePersonaBtn.addEventListener("click", () => this.saveCustomPersona());
-        this.resetPersonaBtn.addEventListener("click", () => {
-            this.customSystemPrompt.value = PERSONAS.general.prompt;
-            this.personaSelect.value = "general";
+        this.closePersonaBtn?.addEventListener("click", () => this.closePersonaModal());
+        this.savePersonaBtn?.addEventListener("click", () => this.saveCustomPersona());
+        this.resetPersonaBtn?.addEventListener("click", () => {
+            if (this.customSystemPrompt) this.customSystemPrompt.value = PERSONAS.general.prompt;
+            if (this.personaSelect) this.personaSelect.value = "general";
             this.onPersonaChange();
             this.closePersonaModal();
             this.showToast("Reset persona to General Assistant", "info");
